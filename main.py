@@ -2,7 +2,7 @@ import requests
 import json
 
 
-key = "AIzaSyDaN8bquMsna8j_yaD2J2Z9YM_fiBvtYiU"
+key = open("./key.txt", 'r').readline().strip()
 
 headers = {
     'Content-Type': 'application/json',
@@ -36,13 +36,13 @@ json_data = {
 		'electric_vehicle_charging_station',
 		'parking',
 		'rest_stop',
-		
+
 		'art_gallery',
 		'hiking_area',
 		'park',
-		
+
 		'atm',
-		
+
 		'city_hall',
 		'courthouse',
 		'embassy',
@@ -50,23 +50,23 @@ json_data = {
 		'local_government_office',
 		'police',
 		'post_office',
-		
+
 		'medical_lab',
-		
+
 		'campground',
-		
+
 		'church',
 		'hindu_temple',
 		'mosque',
 		'synagogue',
-		
+
 		'athletic_field',
 		'playground',
-		
+
 		'airport',
 		'bus_station',
 		'bus_stop',
-		
+
 		'ferry_terminal',
 		'heliport',
 		'light_rail_station',
