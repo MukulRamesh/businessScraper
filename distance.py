@@ -12,18 +12,18 @@ mappedDict = {} # id : (coords, radii)
 
 # checks if a point is inside of already mapped area, or is outside the bounding box
 def isWithinUnmapped(inputCoords):
-	
+
 	for point in mappedDict:
 		coords, radius = mappedDict[point]
 		if (geodesic(inputCoords, coords).km < radius):
 			return False
-		
+
 	lat, long = inputCoords
 	return (lat < upBound and lat > downBound) and (long > leftBound and long < rightBound)
 
 
 def distanceToNearestEdge(queryCoords):
-	lat, long = queryCoords 
+	lat, long = queryCoords
 
 	smallestDist = min(
 		geodesic(queryCoords, (upBound, long)).km,
@@ -31,7 +31,7 @@ def distanceToNearestEdge(queryCoords):
 		geodesic(queryCoords, (lat, leftBound)).km,
 		geodesic(queryCoords, (lat, rightBound)).km
 	)
-	
+
 	for point in mappedDict:
 		coords, radius = mappedDict[point]
 		distanceFromBoundary = geodesic(queryCoords, coords).km - radius
@@ -39,9 +39,10 @@ def distanceToNearestEdge(queryCoords):
 
 	return smallestDist
 
-divisor = 21 # heuristic for below function. larger number means more manual checking. smaller number means slower convergence. 
-numTrials = 35 # number of iterations (higher number takes longer but is more accurate)
-def findPoleOfInaccessibility(lat, long):
+# divisor = 21 # heuristic for below function. larger number means more manual checking. smaller number means slower convergence.
+# numTrials = 21 # number of iterations (higher number takes longer but is more accurate)
+# Current plan is to run this 3 times, and double the divisor and half the numTrials each time.
+def findPoleOfInaccessibility(lat, long, divisor, numTrials):
 	verticalSeperation = (upBound - downBound) / divisor
 	horizontalSeperation = (rightBound - leftBound) / divisor
 
@@ -55,6 +56,6 @@ def findPoleOfInaccessibility(lat, long):
 				maxDistance = max(maxDistance, distanceToNearestEdge(coords))
 				maxCoord = coords
 
-	# i need to make it iterate. so... 
+	# i need to make it iterate. so...
 	# i need to figure out how long/wide the original bounding box is in km, divide by 2 sqrt(2),
 	# go that much up/sideways from the maxCoord, and that will be the new bounding box
