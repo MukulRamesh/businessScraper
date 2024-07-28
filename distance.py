@@ -1,10 +1,14 @@
 from geopy.distance import geodesic
+import math
 
-upBound = 90
-downBound = -90
 
-rightBound = 180
-leftBound = -180
+#Below values should be set: Default is Mercer County, PA
+upBound = 41.5055
+downBound = 41.0649
+
+rightBound = -79.9832
+leftBound = -80.5449
+
 
 # This dictionary stores distict mapped areas. Mapped area is always a circle, so we store the center and the radius.
 mappedDict = {} # id : (coords, radii)
@@ -42,20 +46,48 @@ def distanceToNearestEdge(queryCoords):
 # divisor = 21 # heuristic for below function. larger number means more manual checking. smaller number means slower convergence.
 # numTrials = 21 # number of iterations (higher number takes longer but is more accurate)
 # Current plan is to run this 3 times, and double the divisor and half the numTrials each time.
-def findPoleOfInaccessibility(lat, long, divisor, numTrials):
-	verticalSeperation = (upBound - downBound) / divisor
-	horizontalSeperation = (rightBound - leftBound) / divisor
+def findPoleOfInaccessibility(divisor, numTrials):
+	curUpBound = upBound
+	curDownBound = downBound
 
-	maxDistance = -1
-	maxCoord = None
+	curRightBound = rightBound
+	curLeftBound = leftBound
 
-	for horiNum in range((divisor + 1)):
-		for vertiNum in range((divisor + 1)):
-			coords = (downBound + (vertiNum * verticalSeperation), leftBound + (horiNum * horizontalSeperation))
-			if isWithinUnmapped(coords):
-				maxDistance = max(maxDistance, distanceToNearestEdge(coords))
-				maxCoord = coords
+	for _ in range(numTrials):
 
-	# i need to make it iterate. so...
-	# i need to figure out how long/wide the original bounding box is in km, divide by 2 sqrt(2),
-	# go that much up/sideways from the maxCoord, and that will be the new bounding box
+		verticalSeperation = (curUpBound - curDownBound) / divisor
+		horizontalSeperation = (curRightBound - curLeftBound) / divisor
+
+		maxDistance = -1
+		maxCoord = None
+
+		for horiNum in range((divisor + 1)):
+			for vertiNum in range((divisor + 1)):
+				coords = (curDownBound + (vertiNum * verticalSeperation), curLeftBound + (horiNum * horizontalSeperation))
+				if isWithinUnmapped(coords) and (distanceToNearestEdge(coords) > maxDistance):
+						maxDistance = distanceToNearestEdge(coords)
+						maxCoord = coords
+
+		if (maxDistance == -1):
+			# every sample was outside of the bounds
+			return None
+
+		assert(maxCoord != None)
+
+		# This is imprecise, but I dont think it matters: a potentially more effective solution is to
+		# calculate the vertical and horizontal *distance in km*, and do math with that.
+		newVertical = (curUpBound - curDownBound) / (2 * math.sqrt(2))
+		newHorizontal = (curRightBound - curLeftBound) / (2 * math.sqrt(2)) # we divide by 2sqrt(2) because we double the distance in the next step
+
+		newLat, newLong = maxCoord
+
+		curUpBound = newLat + newVertical
+		curDownBound = newLat - newVertical
+
+		curRightBound = newLong + newHorizontal
+		curLeftBound = newLong - newHorizontal
+
+
+	return maxCoord
+
+
