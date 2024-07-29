@@ -68,6 +68,8 @@ def sendReq(coords):
 			'mosque',
 			'synagogue',
 
+			'cemetery'
+
 			'athletic_field',
 			'playground',
 
