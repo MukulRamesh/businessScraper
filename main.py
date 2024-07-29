@@ -145,13 +145,17 @@ def runRound(div, trials):
 		if (numPlaces < 20):
 			print("WARN: Got fewer than 20 places from API call.")
 
+		numAdded = 0
 		for place in placesData:
 			placeID = place["id"]
 
 			if placeID not in outputDictionary:
 				outputDictionary[placeID] = place
+				numAdded += 1
 			else:
 				print("Found an overlap.")
+		
+		print("Found", numAdded, "places.")
 
 		farthestPlace = placesData[-1]
 		farPlaceCoord = (farthestPlace["location"]["latitude"], farthestPlace["location"]["longitude"])
@@ -217,6 +221,8 @@ def writeCSV():
 						print("Couldn't print failed row!")
 
 runRound(10,2)
+runRound(20,2)
+runRound(25,5)
 writeCSV()
 
 
