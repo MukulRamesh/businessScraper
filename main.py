@@ -1,6 +1,6 @@
 import math
 import requests
-import json
+import parseString
 from geopy.distance import geodesic
 import distance
 import csv
@@ -124,7 +124,7 @@ distance.leftBound = -80.5449
 # contains output
 # id : (place data in json form)
 outputDictionary = {}
-maxReqs = 30
+maxReqs = 1000
 totalAreaMapped = 0
 
 def runRound(div, trials):
@@ -170,27 +170,54 @@ def runRound(div, trials):
 	print("Round over.")
 	return roundAreaMapped
 
+def writeCSV():
+	columns = """
+	id,
+	displayName,
+	primaryType,
+	formattedAddress,
+	location[latitude],
+	location[longitude],
+	nationalPhoneNumber,
+	currentOpeningHours,
+	websiteURL,
+	""".replace("\n","").replace("\t","").split(",")
 
-columns = """
-id,
-displayName,
-primaryType,
-formattedAddress,
-location,
-nationalPhoneNumber,
-currentOpeningHours,
-websiteURL,
-businessStatus,
-""".replace("\n","").split(",")
+	with open('output.csv', 'w', newline='', encoding='utf-8') as csvfile:
+		writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+		writer.writerow(columns)
+
+		for placeid in outputDictionary:
+			place = outputDictionary[placeid]
+
+			businessStatus = place.get("businessStatus")
 
 
-with open('output.csv', 'w', newline='') as csvfile:
-	writer = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(columns)
+			# we only want the operational ones
+			if (businessStatus != None and businessStatus == "OPERATIONAL"):
+				newRow = []
+				newRow.append(place.get("id"))
+				newRow.append(place.get("displayName").get("text"))
+				newRow.append(place.get("primaryType"))
+				newRow.append(place.get("formattedAddress"))
+				newRow.append(place.get("location").get("latitude"))
+				newRow.append(place.get("location").get("longitude"))
+				newRow.append(place.get("nationalPhoneNumber"))
+				newRow.append(parseString.parseOpeningHours(place.get("currentOpeningHours")))
+				newRow.append(place.get("websiteUri"))
+				# print(newRow)
 
+				try:
+					writer.writerow(newRow)
+				except:
 
-# runRound(21,5)
+					try:
+						print("Failed on this row:", newRow)
+					except:
+						print("Couldn't print failed row!")
 
+runRound(10,2)
+writeCSV()
 
 
 
